@@ -1,6 +1,7 @@
 ﻿"use client";
 /* eslint-disable @next/next/no-img-element -- Prévia local do comprovante enviado. */
 import Link from "next/link";
+import { comandaHref } from "@/utils/routes";
 import { useState } from "react";
 import { FiArrowLeft, FiCamera, FiCheck, FiPlus, FiSearch, FiUploadCloud } from "react-icons/fi";
 import { ConsumptionSummary, EmptyState, PageHead, StatusBadge, Toast, useToast } from "@/components/ui";
@@ -42,7 +43,7 @@ export default function Fechar() {
     {done && selected ? <div className="success-card">
       <div className="success-icon"><FiCheck aria-hidden="true" /></div>
       <h2>Comanda fechada com sucesso.</h2><p>{selected.nome} · Comanda {number(selected.numero)}</p>
-      <div className="success-actions"><Link className="button primary" href="/">Voltar ao início</Link><Link className="button outline" href={`/comandas/${selected.id}`}>Visualizar comanda</Link><button className="button outline" onClick={() => { setDone(false); setSelected(undefined); setProof(undefined); setQuery(""); setSearched(false); }}>Fechar outra comanda</button></div>
+      <div className="success-actions"><Link className="button primary" href="/">Voltar ao início</Link><Link className="button outline" href={comandaHref(selected.id)}>Visualizar comanda</Link><button className="button outline" onClick={() => { setDone(false); setSelected(undefined); setProof(undefined); setQuery(""); setSearched(false); }}>Fechar outra comanda</button></div>
     </div> : <>
       {!selected && <>
         <div className="form-card search-panel"><form onSubmit={search}><label htmlFor="close-query">Nome da pessoa</label><div className="search-form"><input id="close-query" placeholder="Digite o nome da pessoa..." value={query} onChange={e => setQuery(e.target.value)} /><button className="button primary"><FiSearch aria-hidden="true" /> Buscar</button></div></form></div>
@@ -63,3 +64,4 @@ export default function Fechar() {
     <Toast message={toast} />
   </div>;
 }
+

@@ -12,12 +12,12 @@ import { getComandaById, totalOf, updateComanda } from "@/services/comandas";
 import type { Comanda, ComandaItem } from "@/types/comanda";
 import { dateTime, money, number } from "@/utils/format";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { FiArrowRight, FiBookOpen, FiPlus } from "react-icons/fi";
 function Details() {
-  const { id } = useParams<{ id: string }>();
   const params = useSearchParams();
+  const id = params.get("id") ?? "";
   const router = useRouter();
   const [comanda, setComanda] = useState<Comanda>();
   const [items, setItems] = useState<ComandaItem[]>([]);
@@ -247,6 +247,7 @@ export default function ComandaPage() {
     </Suspense>
   );
 }
+
 
 
 

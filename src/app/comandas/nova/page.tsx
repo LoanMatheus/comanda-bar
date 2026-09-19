@@ -1,5 +1,6 @@
 ﻿"use client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { comandaHref } from "@/utils/routes";
 import { Suspense, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { PageHead, Toast, useToast } from "@/components/ui";
@@ -13,7 +14,7 @@ function NewForm() {
   const { toast, showToast } = useToast();
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    try { setBusy(true); const c = createComanda(nome); router.push(`/comandas/${c.id}?criada=1`); }
+    try { setBusy(true); const c = createComanda(nome); router.push(comandaHref(c.id, true)); }
     catch (error) { showToast(error instanceof Error ? error.message : "Não foi possível criar a comanda."); setBusy(false); }
   }
   return <div className="container inner-page new-page">
@@ -27,4 +28,5 @@ function NewForm() {
   </div>;
 }
 export default function Nova() { return <Suspense><NewForm /></Suspense>; }
+
 
