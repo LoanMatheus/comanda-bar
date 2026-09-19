@@ -1,5 +1,12 @@
-﻿const { PHASE_DEVELOPMENT_SERVER } = require("next/constants");
+﻿/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  basePath: '/comanda-bar',
+  trailingSlash: true,
 
-module.exports = (phase) => ({
-  distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
-});
+  images: {
+    unoptimized: true,
+  },
+}
+
+module.exports = nextConfig
