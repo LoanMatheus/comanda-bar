@@ -1,0 +1,18 @@
+import type { Comanda, ComandaItem, Comprovante, RegistroDiario } from "@/types/comanda";
+import { localDay } from "@/utils/format";
+
+const KEY = "barcontrol.comandas.v1";
+const SEQ = "barcontrol.sequencia.v1";
+const REG = "barcontrol.registros.v1";
+const read = (): Comanda[] => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
+const write = (items: Comanda[]) => localStorage.setItem(KEY, JSON.stringify(items));
+export const totalOf = (items: ComandaItem[]) => Math.round(items.reduce((sum, item) => sum + item.quantidade * item.precoUnitario, 0) * 100) / 100;
+export const getComandas = () => read().sort((a,b) => b.abertaEm.localeCompare(a.abertaEm));
+export const getComandaById = (id: string) => read().find(c => c.id === id);
+export const searchComandas = (query: string, onlyOpen = false) => getComandas().filter(c => c.nome.toLocaleLowerCase("pt-BR").includes(query.trim().toLocaleLowerCase("pt-BR")) && (!onlyOpen || c.status === "ABERTA"));
+export const createComanda = (nome: string): Comanda => { const clean = nome.trim(); if (!clean) throw new Error("Informe o nome da pessoa."); const numero = Number(localStorage.getItem(SEQ) || "0") + 1; localStorage.setItem(SEQ, String(numero)); const comanda: Comanda = { id: crypto.randomUUID(), numero, nome: clean, status: "ABERTA", itens: [], total: 0, abertaEm: new Date().toISOString() }; write([...read(), comanda]); return comanda; };
+export const updateComanda = (id: string, itens: ComandaItem[]): Comanda => { const all = read(); const index = all.findIndex(c => c.id === id); if (index < 0) throw new Error("Comanda não encontrada."); if (all[index].status !== "ABERTA") throw new Error("Esta comanda não pode ser alterada."); const clean = itens.filter(i => i.quantidade > 0 && i.nome.trim() && i.precoUnitario >= 0).map(i => ({ ...i, quantidade: Math.floor(i.quantidade) })); const updated = { ...all[index], itens: clean, total: totalOf(clean) }; all[index] = updated; write(all); return updated; };
+export const closeComanda = (id: string, comprovante: Comprovante): Comanda => { const all = read(); const index = all.findIndex(c => c.id === id); if (index < 0) throw new Error("Comanda não encontrada."); if (all[index].status !== "ABERTA") throw new Error("Esta comanda já foi finalizada."); if (!comprovante.url) throw new Error("Anexe um comprovante."); const updated: Comanda = { ...all[index], status: "PAGA", total: totalOf(all[index].itens), fechadaEm: new Date().toISOString(), comprovante }; all[index] = updated; write(all); return updated; };
+export const getComandasByDate = (start: string, end: string) => getComandas().filter(c => { const day = localDay(c.abertaEm); return day >= start && day <= end; });
+export const getRegistros = (): RegistroDiario[] => { try { return JSON.parse(localStorage.getItem(REG) || "[]"); } catch { return []; } };
+export const closeDailyRegister = (): RegistroDiario => { const today = localDay(new Date()); const all = read(); const ofDay = all.filter(c => localDay(c.abertaEm) === today); const abertas = ofDay.filter(c => c.status === "ABERTA"); const registro: RegistroDiario = { id: crypto.randomUUID(), fechadoEm: new Date().toISOString(), quantidade: ofDay.length, totalRecebido: totalOf(ofDay.filter(c => c.status === "PAGA").map(c => ({ id:c.id,nome:c.nome,quantidade:1,precoUnitario:c.total }))), totalPendente: abertas.reduce((sum,c) => sum+c.total,0) }; const updated = all.map(c => abertas.some(a => a.id === c.id) ? { ...c, status: "PENDENTE" as const, pendenteEm: registro.fechadoEm } : c); write(updated); localStorage.setItem(REG, JSON.stringify([...getRegistros(), registro])); return registro; };
